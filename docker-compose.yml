@@ -1,0 +1,49 @@
+---
+services:
+
+  dozzle:
+    image: "amir20/dozzle:latest"
+    container_name: root-dozzle
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    ports:
+      - "9000:8080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dozzle.rule=Host(`dozzle.localhost`)"
+      - "traefik.http.routers.dozzle.entrypoints=http"
+      - "traefik.http.services.dozzle.loadbalancer.server.port=8080"
+    restart: unless-stopped
+
+  traefik:
+    image: docker.io/library/traefik:v3.1.2
+    container_name: root-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.traefik.address=:65535"
+      - "--entrypoints.http.forwardedHeaders.insecure=true"
+      - "--entrypoints.https.forwardedHeaders.insecure=true"
+      - "--entrypoints.http.forwardedHeaders.trustedIPs=0.0.0.0/0"
+      - "--entrypoints.https.forwardedHeaders.trustedIPs=0.0.0.0/0"
+      - "--entrypoints.https.address=:443"
+    ports:
+      - "8000:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.traefik.entrypoints=http"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+    restart: unless-stopped
+
+networks:
+  default:
+    name: devroom
+    external: false
+    driver: bridge
