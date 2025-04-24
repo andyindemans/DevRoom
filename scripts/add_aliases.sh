@@ -8,11 +8,11 @@ declare -A aliases=(
 
 for name in "${!aliases[@]}"; do
   alias_cmd="alias $name='${aliases[$name]}'"
-  
+
   if grep -Fxq "$alias_cmd" ~/.bashrc; then
     echo "Alias '$name' already exists in ~/.bashrc"
   else
-    echo "$alias_cmd" >> ~/.bashrc
+    echo -e "\n$alias_cmd" >> ~/.bashrc
     echo "Alias '$name' added to ~/.bashrc"
   fi
 done
